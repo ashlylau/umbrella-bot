@@ -40,9 +40,9 @@ var j = schedule.scheduleJob('0 9 * * *', function(){
       console.log(weather);
     }
     console.log(rain_periods);
-    const rainMessage = formatRainMessage(rain_periods);
     if (rain_periods.length > 0) {
-      bot.sendMessage(process.env.shChatId, 'Bring your umbrella!!!');
+      const rainMessage = formatRainMessage(rain_periods);
+      bot.sendMessage(process.env.ashChatId, 'Bring your umbrella!!!');
       bot.sendMessage(process.env.ashChatId, rainMessage);
     }
   }, error => { console.log(error); })
