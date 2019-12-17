@@ -15,9 +15,9 @@ const weatherBitEndpoint = () => (
   `https://api.weatherbit.io/v2.0/forecast/hourly?city_id=${LondonId}&key=${process.env.weatherBitId}`
 )
 
-// bot.on('message', (msg) => {
+bot.on('message', (msg) => {
 // this function is called every morning at 9am
-var j = schedule.scheduleJob('0 9 * * *', function(){
+// var j = schedule.scheduleJob('0 9 * * *', function(){
   const endpoint = weatherBitEndpoint();
   axios.get(endpoint).then((resp) => {
     const data = resp.data.data;  // this is an array of 120 hourly predictions (starts from the next hour from when you call this)
