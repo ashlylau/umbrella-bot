@@ -44,6 +44,8 @@ bot.on('message', (msg) => {
       const rainMessage = formatRainMessage(rain_periods);
       bot.sendMessage(process.env.ashChatId, 'Bring your umbrella!!!');
       bot.sendMessage(process.env.ashChatId, rainMessage);
+    } else {
+      bot.sendMessage(process.env.ashChatId, "Nah its not gonna rain lol")
     }
   }, error => { console.log(error); })
 });
