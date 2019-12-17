@@ -15,9 +15,9 @@ const weatherBitEndpoint = () => (
   `https://api.weatherbit.io/v2.0/forecast/hourly?city_id=${LondonId}&key=${process.env.weatherBitId}`
 )
 
-bot.on('message', (msg) => {
+// bot.on('message', (msg) => {
 // this function is called every morning at 9am
-// var j = schedule.scheduleJob('0 9 * * *', function(){
+var j = schedule.scheduleJob('0 9 * * *', function(){
   const endpoint = weatherBitEndpoint();
   axios.get(endpoint).then((resp) => {
     const data = resp.data.data;  // this is an array of 120 hourly predictions (starts from the next hour from when you call this)
@@ -83,4 +83,72 @@ function formatRainMessage(rain_periods) {
 }
 
 //TODO: add other cool features for bot ie. weather summary, whether it will rain during football prac etc
-// bot.on('message', (msg) => {
+bot.onText(/\/weather/, (msg) => {
+  const chatId = msg.chat.id;
+  const endpoint = weatherBitEndpoint();
+  axios.get(endpoint).then((resp) => {
+    const data = resp.data.data;  // this is an array of 120 hourly predictions (starts from the next hour from when you call this)
+
+    var rain_periods = [];  // list of intervals where it will rain
+    var weatherInfoList = [];
+    var i;
+    for (i = 0; i < 24; i++) {
+      const hour_data = data[i];
+      var date = new Date(hour_data.timestamp_utc);
+      const time = date.toLocaleTimeString('en-US');
+
+      console.log(time);
+      const weather = hour_data.weather;
+      const desc = weather.description;
+
+      var weatherInfo = [date, weather];
+      weatherInfoList.push(weatherInfo);
+
+    }
+    bot.sendMessage(chatId, formatWeatherMessage(weatherInfoList));
+  }, error => { console.log(error); })
+});
+
+//TODO: fix this
+function formatWeatherMessage(weatherInfoList) {
+  var message = "Here is the weather forecast:\n";
+  var weatherDesc = weatherInfoList[0][1].description;
+  var startTime = weatherInfoList[0][0];
+  var endTime = startTime;
+  var startIndex = 0;
+  var i;
+  for (i = 1; i < weatherInfoList.length; i++) {
+    const currWeatherDesc = weatherInfoList[i][1].description;
+    const currTime = weatherInfoList[i][0];
+    console.log(currTime);
+    console.log(weatherInfoList[i][1]);
+    if (weatherDesc.localeCompare(currWeatherDesc) == 0) {
+      endTime = currTime;
+    } else {
+      message = message + weatherDesc;
+      message = message + ": "
+      message = message + startTime.toLocaleTimeString('en-US');
+      message = message + " - "
+      message = message + endTime.toLocaleTimeString('en-US');
+      message = message + "\n"
+      weatherDesc = currWeatherDesc;
+      startTime = endTime = currTime;
+    }
+  }
+  message = message + weatherDesc;
+  message = message + ": "
+  message = message + startTime.toLocaleTimeString('en-US');
+  message = message + " - "
+  message = message + endTime.toLocaleTimeString('en-US');
+  return message;
+}
+
+bot.on('message', (msg) => {
+  if (msg.text == "hi") {
+    bot.sendMessage(msg.chat.id, "lol hi :)");
+  } else if (msg.text == "whats the weather") {
+    bot.sendMessage(msg.chat.id, "use the \\weather command");
+  } else {
+    bot.sendMessage(msg.chat.id, "<3");
+  }
+});
