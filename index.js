@@ -17,7 +17,7 @@ const weatherBitEndpoint = () => (
 
 // bot.on('message', (msg) => {
 // this function is called every morning at 9am
-var j = schedule.scheduleJob('0 9 * * *', function(){
+var j = schedule.scheduleJob('0 10 * * *', function(){
   const endpoint = weatherBitEndpoint();
   axios.get(endpoint).then((resp) => {
     const data = resp.data.data;  // this is an array of 120 hourly predictions (starts from the next hour from when you call this)
