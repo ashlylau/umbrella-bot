@@ -2,7 +2,7 @@ const TelegramBot = require('node-telegram-bot-api');
 const axios = require('axios').default;
 var schedule = require('node-schedule');
 
-// connect Express to open port for Heroku (R10 error)
+// connect Express to open port for Heroku (fix R10 error)
 const express = require('express');
 const expressApp = express();
 
@@ -145,6 +145,41 @@ function formatWeatherMessage(weatherInfoList) {
   message = message + " - "
   message = message + endTime.toLocaleTimeString('en-US');
   return message;
+}
+
+// message on monday 10am with weather forecast during football training at 7-10pm
+var i = schedule.scheduleJob('0 10 * * 1', function(){
+  sendFootballWeather();
+});
+
+bot.onText(/\/football/, (msg) => {
+  sendFootballWeather();
+});
+
+function sendFootballWeather() {
+  const endpoint = weatherBitEndpoint();
+  axios.get(endpoint).then((resp) => {
+    // this is an array of 120 hourly predictions (starts from the next hour from when you call this)
+    const data = resp.data.data;
+
+    // filter appropriate timings
+    var footballTiming = data.filter(function(day) {
+      var date = new Date(day.timestamp_utc);
+      const time = date.toLocaleTimeString('en-US');
+      return ["7:00:00 PM", "8:00:00 PM", "9:00:00 PM"].includes(time) && date.getDay() == 1;
+    });
+
+    var weather = new Set();
+    var temp = 0;
+    for (date of footballTiming) {
+      weather.add(date.weather.description);
+      temp += date.temp/3;
+    }
+
+    bot.sendMessage(process.env.ashChatId, "Football training 7-10pm today \u26BD");
+    bot.sendMessage(process.env.ashChatId, 'Weather: ' + Array.from(weather).join(', ') +
+                                           ', Temp: ' + temp.toFixed(2));
+  }, error => { console.log(error); });
 }
 
 // random default response messages
