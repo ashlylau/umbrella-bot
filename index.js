@@ -1,23 +1,29 @@
-//TODO: host this somewhere other than localhost
 const TelegramBot = require('node-telegram-bot-api');
 const axios = require('axios').default;
 var schedule = require('node-schedule');
 
+// connect Express to open port for Heroku (R10 error)
+const express = require('express');
+const expressApp = express();
+
+const port = process.env.PORT || 3000;
+expressApp.get('/', (req, res) => {
+  res.send('Hello World!')
+});
+expressApp.listen(port, () => {
+  console.log(`Listening on port ${port}`)
+});
+
 const LondonId = 2643741
 const bot = new TelegramBot(process.env.token, {polling: true});
-
-// // old weather api
-// const weatherEndpoint = () => (
-//   `http://api.openweathermap.org/data/2.5/weather?id=${LondonId}&units=metric&appid=${weatherID}`
-// )
 
 const weatherBitEndpoint = () => (
   `https://api.weatherbit.io/v2.0/forecast/hourly?city_id=${LondonId}&key=${process.env.weatherBitId}`
 )
 
-// bot.on('message', (msg) => {
+// bot.onText(/\/rain/, (msg) => {
 // this function is called every morning at 9am
-var j = schedule.scheduleJob('0 10 * * *', function(){
+var j = schedule.scheduleJob('0 9 * * *', function(){
   const endpoint = weatherBitEndpoint();
   axios.get(endpoint).then((resp) => {
     const data = resp.data.data;  // this is an array of 120 hourly predictions (starts from the next hour from when you call this)
@@ -82,12 +88,12 @@ function formatRainMessage(rain_periods) {
   return rainMessage;
 }
 
-//TODO: add other cool features for bot ie. weather summary, whether it will rain during football prac etc
 bot.onText(/\/weather/, (msg) => {
   const chatId = msg.chat.id;
   const endpoint = weatherBitEndpoint();
   axios.get(endpoint).then((resp) => {
     const data = resp.data.data;  // this is an array of 120 hourly predictions (starts from the next hour from when you call this)
+    console.log(data);
 
     var rain_periods = [];  // list of intervals where it will rain
     var weatherInfoList = [];
@@ -103,7 +109,6 @@ bot.onText(/\/weather/, (msg) => {
 
       var weatherInfo = [date, weather];
       weatherInfoList.push(weatherInfo);
-
     }
     bot.sendMessage(chatId, formatWeatherMessage(weatherInfoList));
   }, error => { console.log(error); })
@@ -115,7 +120,6 @@ function formatWeatherMessage(weatherInfoList) {
   var weatherDesc = weatherInfoList[0][1].description;
   var startTime = weatherInfoList[0][0];
   var endTime = startTime;
-  var startIndex = 0;
   var i;
   for (i = 1; i < weatherInfoList.length; i++) {
     const currWeatherDesc = weatherInfoList[i][1].description;
@@ -143,8 +147,9 @@ function formatWeatherMessage(weatherInfoList) {
   return message;
 }
 
+// random default response messages
 bot.on('message', (msg) => {
-  if (msg.text == "hi") {
+  if (msg.text == "hi" || msg.text == "Hi") {
     bot.sendMessage(msg.chat.id, "lol hi :)");
   } else if (msg.text == "whats the weather") {
     bot.sendMessage(msg.chat.id, "use the \\weather command");
