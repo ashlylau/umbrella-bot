@@ -21,6 +21,8 @@ const weatherBitEndpoint = () => (
   `https://api.weatherbit.io/v2.0/forecast/hourly?city_id=${LondonId}&key=${process.env.weatherBitId}`
 )
 
+const randomFactEndpoint = "https://uselessfacts.jsph.pl/random.json?language=en";
+
 // bot.onText(/\/rain/, (msg) => {
 // this function is called every morning at 9am
 var j = schedule.scheduleJob('0 9 * * *', function(){
@@ -182,13 +184,24 @@ function sendFootballWeather() {
   }, error => { console.log(error); });
 }
 
+// random fact generator
+bot.onText(/\/random/, (msg) => {
+  sendRandomFact();
+});
+
+function sendRandomFact() {
+  axios.get(randomFactEndpoint).then((resp) => {
+    const randomFact = resp.data.text;
+    bot.sendMessage(process.env.ashChatId, "Here's a random ass fact:");
+    bot.sendMessage(process.env.ashChatId, randomFact);
+  }, error => { console.log(error); });
+}
+
 // random default response messages
 bot.on('message', (msg) => {
   if (msg.text == "hi" || msg.text == "Hi") {
     bot.sendMessage(msg.chat.id, "lol hi :)");
   } else if (msg.text == "whats the weather") {
     bot.sendMessage(msg.chat.id, "use the \\weather command");
-  } else {
-    bot.sendMessage(msg.chat.id, "<3");
   }
 });
