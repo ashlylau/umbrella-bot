@@ -23,6 +23,8 @@ const weatherBitEndpoint = () => (
 
 const randomFactEndpoint = "https://uselessfacts.jsph.pl/random.json?language=en";
 
+const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
 // bot.onText(/\/rain/, (msg) => {
 // this function is called every morning at 9am
 var j = schedule.scheduleJob('0 9 * * *', function(){
@@ -173,12 +175,16 @@ function sendFootballWeather() {
 
     var weather = new Set();
     var temp = 0;
-    for (date of footballTiming) {
-      weather.add(date.weather.description);
-      temp += date.temp/3;
+    for (timing of footballTiming) {
+      weather.add(timing.weather.description);
+      temp += timing.temp/3;
     }
 
-    bot.sendMessage(process.env.ashChatId, "Football training 7-10pm today \u26BD");
+    // get today's date
+    var date = new Date(footballTiming[0].timestamp_utc);
+    var dateString = date.getDate() + " " + months[date.getMonth()];
+
+    bot.sendMessage(process.env.ashChatId, "Football training 7-10pm today (" + dateString + ") \u26BD");
     bot.sendMessage(process.env.ashChatId, 'Weather: ' + Array.from(weather).join(', ') +
                                            ', Temp: ' + temp.toFixed(2));
   }, error => { console.log(error); });
