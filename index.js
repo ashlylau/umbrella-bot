@@ -14,6 +14,12 @@ expressApp.listen(port, () => {
   console.log(`Listening on port ${port}`)
 });
 
+// ping heroku app every 15 min
+var http = require("http");
+setInterval(function() {
+    http.get("http://umbrella-telegram-bot.herokuapp.com");
+}, 900000); // every 15 minutes (900000)
+
 const LondonId = 2643741
 const bot = new TelegramBot(process.env.token, {polling: true});
 
