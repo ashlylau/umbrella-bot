@@ -7,7 +7,8 @@ Add this bot on telegram: **@umbrella-bot**
 ## features
 * daily reminder at 9am to bring an umbrella if it's raining
 * ```/weather```: daily forecast
-* todo: reminder on Mondays about weather during football practice (7-10pm)
+* ```/football```: weather during football practice on Mondays (7-10pm) + reminder on Monday 10am
+* ```/random```: random fact generator
 
 
 ## running locally
