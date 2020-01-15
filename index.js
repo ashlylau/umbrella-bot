@@ -46,7 +46,7 @@ bot.onText(/\/weather/, (msg) => {
 });
 
 // message on monday 10am with weather forecast during football training at 7-10pm
-var i = schedule.scheduleJob('0 10 * * 1', function(){
+var i = schedule.scheduleJob('5 10 * * 1', function(){
   sendMessage(weatherBitEndpoint, undefined, footballMessage);
 });
 
@@ -70,7 +70,7 @@ bot.on('message', (msg) => {
 
 
 function sendMessage(endpoint, msg, generateMessage) {
-  const msgId = msg.chat.id || process.env.ashChatId;
+  const msgId = msg == undefined ? process.env.ashChatId : msg.chat.id;
   axios.get(endpoint).then((resp) => {
     generateMessage(resp, msgId);
   }, error => { console.log(error); });
