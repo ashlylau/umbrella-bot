@@ -32,7 +32,7 @@ const bot = new TelegramBot(process.env.token, {polling: true});
 
 
 // send message everyday at 9am about whether it will rain
-var j = schedule.scheduleJob('10 10 * * *', function(){
+var j = schedule.scheduleJob('0 9 * * *', function(){
   sendMessage(weatherBitEndpoint, undefined, rainMessage);
 });
 
@@ -101,7 +101,7 @@ function rainMessage(resp, msgId) {
     bot.sendMessage(msgId, 'Bring your umbrella!!! \u2614');
     bot.sendMessage(msgId, formatRainMessage(rain_periods));
   } else {
-    bot.sendMessage(msgId, "Nah its not gonna rain lol")
+    bot.sendMessage(msgId, "Nah its not gonna rain today lol")
   }
 }
 
