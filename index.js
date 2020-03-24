@@ -27,19 +27,40 @@ const sg2HourForecast = `https://api.data.gov.sg/v1/environment/2-hour-weather-f
 
 const bot = new TelegramBot(process.env.token, {polling: true});
 
+var msgIds = [];
+
 // send message everyday at 9am about whether it will rain
 var j = schedule.scheduleJob('0 9 * * *', function(){
   sendMessage(sg24HourForecast, undefined, sgRainMessage);
 });
 
+// send message everyday at 9am about covid-19 updates
+var j = schedule.scheduleJob('0 9 * * *', function(){
+  sendCovidMessage(msg, covidMessage, undefined);
+});
+
 bot.onText(/\/start/, (msg) => {
   bot.sendMessage(msg.chat.id, "Hey!\nTo get the weather forecast, use the \\weather command\n"
                                + "To know if you need to bring an umbrella use the \\rain command\n"
-                               + "To get random facts use \\random.");
+                               + "To get random facts use \\random.\n"
+                               + "For Covid-19 updates use \\covid {country_name}");
 });
 
 bot.onText(/\/rain/, (msg) => {
   sendMessage(sg24HourForecast, msg, sgRainMessage);
+});
+
+// subscribe for daily updates
+bot.onText(/\/subscribe/, (msg) => {
+  msgIds.push(msg.chat.id);
+  bot.sendMessage(msg.chat.id, "subscribed for covid & weather updates!");
+});
+
+// unsubscribe from daily updates
+bot.onText(/\/unsubscribe/, (msg) => {
+  const index = msgIds.indexOf(msg.chat.id);
+  if (index > -1) msgIds.splice(index);
+  bot.sendMessage(msg.chat.id, "unsubscribed!");
 });
 
 // weather forecast for the next 2 hours
@@ -56,6 +77,11 @@ bot.onText(/\/random/, (msg) => {
   sendMessage(randomFactEndpoint, msg, randomMessage);
 });
 
+// covid updates
+bot.onText(/\/covid/, (msg, match) => {
+  sendCovidMessage(msg, covidMessage, match);
+});
+
 // random default response messages
 bot.on('message', (msg) => {
   if (msg.text == "hi" || msg.text == "Hi") {
@@ -66,10 +92,56 @@ bot.on('message', (msg) => {
 });
 
 function sendMessage(endpoint, msg, generateMessage) {
-  const msgId = msg == undefined ? process.env.ashChatId : msg.chat.id;
+  const msgId = msg == undefined ? msgIds : [msg.chat.id];
+  console.log(msgId);
   axios.get(endpoint).then((resp) => {
-    generateMessage(resp, msgId);
+    for (var i in msgId) {
+      generateMessage(resp, msgId[i]);
+    }
   }, error => { console.log(error); });
+}
+
+function sendCovidMessage(msg, generateMessage, match) {
+  const msgId = msg == undefined ? msgIds : [msg.chat.id];
+  var country = match.input.split(' ')[1];
+  if (country === undefined) country = 'Singapore';
+  axios({
+    "method":"GET",
+    "url":"https://covid-193.p.rapidapi.com/statistics",
+    "headers":{
+    "content-type":"application/octet-stream",
+    "x-rapidapi-host":"covid-193.p.rapidapi.com",
+    "x-rapidapi-key":"14ef9a7500msh24ddb3612ec6aafp129d6djsn5db33f6201dd"
+    },"params":{
+    "country":`${country}`
+    }
+    })
+    .then((resp) => {
+      for (var i in msgId) {
+        generateMessage(resp, msgId[i]);
+      }
+    })
+    .catch((error)=>{
+      console.log(error)
+    })
+}
+
+function covidMessage(resp, msgId) {
+  const data = resp.data.response;
+  console.log(data);
+  const country = data[0].country;
+  const cases = data[0].cases;
+  const deaths = data[0].deaths;
+  var message = `COVID-19 updates for ${country} (${getDate()}):\n\n`;
+  message += 'CASES\n';
+  for (var x in cases) {
+    message += `${x}: ${cases[x]===null? 0 : cases[x]}\n`;
+  }
+  message += '\nDEATHS\n';
+  for (var y in deaths) {
+    message += `${y}: ${deaths[y]===null? 0 : deaths[y]}\n`;
+  }
+  bot.sendMessage(msgId, message);
 }
 
 function sgRainMessage(resp, msgId) {
