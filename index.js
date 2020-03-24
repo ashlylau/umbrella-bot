@@ -40,10 +40,11 @@ var j = schedule.scheduleJob('0 9 * * *', function(){
 });
 
 bot.onText(/\/start/, (msg) => {
-  bot.sendMessage(msg.chat.id, "Hey!\nTo get the weather forecast, use the \\weather command\n"
-                               + "To know if you need to bring an umbrella use the \\rain command\n"
-                               + "To get random facts use \\random.\n"
-                               + "For Covid-19 updates use \\covid {country_name}");
+  bot.sendMessage(msg.chat.id, "Hey!\nTo get the weather forecast, use the \/weather command\n"
+                               + "To know if you need to bring an umbrella use the \/rain command\n"
+                               + "To get random facts use \/random.\n"
+                               + "For Covid-19 updates use \/covid {country_name} eg. \/covid Singapore\n"
+                               + "To subscribe for daily updates use \/subscribe");
 });
 
 bot.onText(/\/rain/, (msg) => {
