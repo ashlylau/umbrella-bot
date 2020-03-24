@@ -27,10 +27,15 @@ const sg2HourForecast = `https://api.data.gov.sg/v1/environment/2-hour-weather-f
 
 const bot = new TelegramBot(process.env.token, {polling: true});
 
-
 // send message everyday at 9am about whether it will rain
 var j = schedule.scheduleJob('0 9 * * *', function(){
   sendMessage(sg24HourForecast, undefined, sgRainMessage);
+});
+
+bot.onText(/\/start/, (msg) => {
+  bot.sendMessage(msg.chat.id, "Hey!\n To get the weather forecast, use the \\weather command\n"
+                               + "To know if you need to bring an umbrella use the \\rain command\n"
+                               + "To get random facts use \\random.");
 });
 
 bot.onText(/\/rain/, (msg) => {
