@@ -30,13 +30,13 @@ const bot = new TelegramBot(process.env.token, {polling: true});
 var msgIds = new Set();
 
 // send message everyday at 9am about whether it will rain
-var j = schedule.scheduleJob('0 9 * * *', function(){
+var j = schedule.scheduleJob('0 1 * * *', function(){
   sendMessage(sg24HourForecast, undefined, sgRainMessage);
 });
 
 // send message everyday at 9am about covid-19 updates
-var j = schedule.scheduleJob('0 9 * * *', function(){
-  sendCovidMessage(msg, covidMessage, undefined);
+var j = schedule.scheduleJob('0 1 * * *', function(){
+  sendCovidMessage(undefined, covidMessage, undefined);
 });
 
 bot.onText(/\/start/, (msg) => {
