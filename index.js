@@ -27,7 +27,7 @@ const sg2HourForecast = `https://api.data.gov.sg/v1/environment/2-hour-weather-f
 
 const bot = new TelegramBot(process.env.token, {polling: true});
 
-var msgIds = [];
+var msgIds = new Set();
 
 // send message everyday at 9am about whether it will rain
 var j = schedule.scheduleJob('0 9 * * *', function(){
@@ -52,14 +52,15 @@ bot.onText(/\/rain/, (msg) => {
 
 // subscribe for daily updates
 bot.onText(/\/subscribe/, (msg) => {
-  msgIds.push(msg.chat.id);
+  msgIds.add(msg.chat.id);
+  console.log(msgIds);
   bot.sendMessage(msg.chat.id, "subscribed for covid & weather updates!");
 });
 
 // unsubscribe from daily updates
 bot.onText(/\/unsubscribe/, (msg) => {
-  const index = msgIds.indexOf(msg.chat.id);
-  if (index > -1) msgIds.splice(index);
+  msgIds.delete(msg.chat.id);
+  console.log(msgIds);
   bot.sendMessage(msg.chat.id, "unsubscribed!");
 });
 
