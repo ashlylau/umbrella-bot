@@ -111,7 +111,7 @@ function sendCovidMessage(msg, generateMessage, match) {
     "headers":{
     "content-type":"application/octet-stream",
     "x-rapidapi-host":"covid-193.p.rapidapi.com",
-    "x-rapidapi-key":"14ef9a7500msh24ddb3612ec6aafp129d6djsn5db33f6201dd"
+    "x-rapidapi-key":process.env.rapid-api-key,
     },"params":{
     "country":`${country}`
     }
