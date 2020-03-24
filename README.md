@@ -12,6 +12,10 @@ Add this bot on telegram: **@umbrella-bot**
 
 
 ## running locally
+stop heroku web dynos:
+
+```heroku ps:stop web.1 -a umbrella-telegram-bot```
+
 configure environment variables:
 
 ```source app-env```
