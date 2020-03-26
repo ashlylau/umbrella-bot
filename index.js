@@ -30,10 +30,10 @@ const bot = new TelegramBot(process.env.token, {polling: true});
 var mysql = require('mysql');
 
 var con = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: process.env.password,
-  database: 'umbrelladb'
+  host: process.env.dbhost,
+  user: process.env.dbuser,
+  password: process.env.dbpassword,
+  database: process.env.db
 });
 
 function makeQuery(query) {
