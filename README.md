@@ -23,9 +23,13 @@ Add this bot on telegram: **@umbrella-test-bot**
 
 
 ## running locally
+set maintenance mode:
+```heroku maintenance:on -a umbrella-telegram-bot```
+
 stop heroku web dynos:
 
 ```heroku ps:stop web.1 -a umbrella-telegram-bot```
+```heroku ps:scale web=0 -a umbrella-telegram-bot```
 
 configure environment variables:
 

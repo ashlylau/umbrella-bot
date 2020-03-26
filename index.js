@@ -27,16 +27,45 @@ const sg2HourForecast = `https://api.data.gov.sg/v1/environment/2-hour-weather-f
 
 const bot = new TelegramBot(process.env.token, {polling: true});
 
-var msgIds = new Set();
+var mysql = require('mysql');
 
-// send message everyday at 9am about whether it will rain
-var j = schedule.scheduleJob('0 1 * * *', function(){
-  sendMessage(sg24HourForecast, undefined, sgRainMessage);
+var con = mysql.createConnection({
+  host: "localhost",
+  user: "root",
+  password: process.env.password,
+  database: 'umbrelladb'
 });
 
-// send message everyday at 9am about covid-19 updates
+function makeQuery(query) {
+  con.connect(function(err) {
+    console.log("Connected!");
+
+    con.query(query, function (err, result) {
+      console.log(`Made query: ${query}`);
+      console.log(result);
+    });
+  });
+}
+
+// query all user ids and send message updates
+function queryUsers(query) {
+  con.connect(function(err) {
+    console.log("Connected!");
+
+    con.query(query, function (err, result) {
+      console.log(`Made query: ${query}`);
+      for (var i in result) {
+        console.log(result[i].msgid);
+        sendCovidMessage(result[i].msgid, covidMessage, undefined);
+        sendMessage(sg24HourForecast, result[i].msgid, sgRainMessage);
+      }
+    });
+  });
+}
+
+// send message everyday at 9am
 var j = schedule.scheduleJob('0 1 * * *', function(){
-  sendCovidMessage(undefined, covidMessage, undefined);
+  queryUsers('SELECT * from users;');
 });
 
 bot.onText(/\/start/, (msg) => {
@@ -48,40 +77,38 @@ bot.onText(/\/start/, (msg) => {
 });
 
 bot.onText(/\/rain/, (msg) => {
-  sendMessage(sg24HourForecast, msg, sgRainMessage);
+  sendMessage(sg24HourForecast, msg.chat.id, sgRainMessage);
 });
 
 // subscribe for daily updates
 bot.onText(/\/subscribe/, (msg) => {
-  msgIds.add(msg.chat.id);
-  console.log(msgIds);
+  makeQuery(`INSERT INTO users (msgid) VALUES ('${msg.chat.id}')`);
   bot.sendMessage(msg.chat.id, "subscribed for covid & weather updates!");
 });
 
 // unsubscribe from daily updates
 bot.onText(/\/unsubscribe/, (msg) => {
-  msgIds.delete(msg.chat.id);
-  console.log(msgIds);
+  makeQuery(`DELETE FROM users WHERE msgid = ${msg.chat.id}`);
   bot.sendMessage(msg.chat.id, "unsubscribed!");
 });
 
 // weather forecast for the next 2 hours
 bot.onText(/\/weather/, (msg) => {
-  sendMessage(sg2HourForecast, msg, sgWeatherForecast);
+  sendMessage(sg2HourForecast, msg.chat.id, sgWeatherForecast);
 });
 
 bot.onText(/\/football/, (msg) => {
-  sendMessage(sg24HourForecast, msg, footballMessage);
+  sendMessage(sg24HourForecast, msg.chat.id, footballMessage);
 });
 
 // random fact generator
 bot.onText(/\/random/, (msg) => {
-  sendMessage(randomFactEndpoint, msg, randomMessage);
+  sendMessage(randomFactEndpoint, msg.chat.id, randomMessage);
 });
 
 // covid updates
 bot.onText(/\/covid/, (msg, match) => {
-  sendCovidMessage(msg, covidMessage, match);
+  sendCovidMessage(msg.chat.id, covidMessage, match);
 });
 
 // random default response messages
@@ -93,20 +120,23 @@ bot.on('message', (msg) => {
   }
 });
 
-function sendMessage(endpoint, msg, generateMessage) {
-  const msgId = msg == undefined ? msgIds : [msg.chat.id];
-  console.log(msgId);
+function sendMessage(endpoint, msgId, generateMessage) {
   axios.get(endpoint).then((resp) => {
-    for (var i in msgId) {
-      generateMessage(resp, msgId[i]);
-    }
+    generateMessage(resp, msgId);
   }, error => { console.log(error); });
 }
 
-function sendCovidMessage(msg, generateMessage, match) {
-  const msgId = msg == undefined ? msgIds : [msg.chat.id];
-  var country = match.input.split(' ')[1];
-  if (country === undefined) country = 'Singapore';
+// for testing
+bot.onText(/\/blah/, (msg) => {
+  queryUsers('SELECT * from users;');
+});
+
+function sendCovidMessage(msgId, generateMessage, match) {
+  var country = 'Singapore';  // default
+  if (match != undefined) {
+    var temp = match.input.split(' ')[1];
+    if (temp != undefined) country = temp;
+  }
   axios({
     "method":"GET",
     "url":"https://covid-193.p.rapidapi.com/statistics",
@@ -119,9 +149,7 @@ function sendCovidMessage(msg, generateMessage, match) {
     }
     })
     .then((resp) => {
-      for (var i in msgId) {
-        generateMessage(resp, msgId[i]);
-      }
+      generateMessage(resp, msgId);
     })
     .catch((error)=>{
       console.log(error)
