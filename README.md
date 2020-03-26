@@ -24,6 +24,7 @@ Add this bot on telegram: **@umbrella-test-bot**
 
 ## running locally
 set maintenance mode:
+
 ```heroku maintenance:on -a umbrella-telegram-bot```
 
 stop heroku web dynos:
@@ -38,3 +39,5 @@ configure environment variables:
 run:
 
 ```node index.js```
+
+debugging db: https://bezkoder.com/deploy-node-js-app-heroku-cleardb-mysql/
