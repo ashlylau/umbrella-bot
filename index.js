@@ -94,7 +94,7 @@ bot.onText(/\/unsubscribe/, (msg) => {
 
 // weather forecast for the next 2 hours
 bot.onText(/\/weather/, (msg) => {
-  sendMessage(sg2HourForecast, msg.chat.id, sgWeatherForecast);
+  sendMessage(sg24HourForecast, msg.chat.id, sgWeatherForecast);
 });
 
 bot.onText(/\/football/, (msg) => {
@@ -189,10 +189,11 @@ function sgRainMessage(resp, msgId) {
 }
 
 function sgWeatherForecast(resp, msgId) {
-  const data = resp.data.items;
-  const latest = data[data.length-1];
-  const bishanForecast = latest.forecasts[2].forecast;
-  bot.sendMessage(msgId, `Forecast for the next 2 hours: ${bishanForecast}`);
+  const data = resp.data.items[4];
+  const morning = data.periods[1];
+  const afternoon = data.periods[2];
+
+  bot.sendMessage(msgId, `Weather forecast for today (${getDate()})\nMorning: ${morning.regions.central}\nAfternoon: ${afternoon.regions.central}`);
 }
 
 function randomMessage(resp, msgId) {
