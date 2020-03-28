@@ -22,8 +22,8 @@ setInterval(function() {
 }, 900000); // every 15 minutes (900000)
 
 const randomFactEndpoint = "https://uselessfacts.jsph.pl/random.json?language=en";
-const sg24HourForecast = `https://api.data.gov.sg/v1/environment/24-hour-weather-forecast?date=${getDate()}`;
-const sg2HourForecast = `https://api.data.gov.sg/v1/environment/2-hour-weather-forecast?date=${getDate()}`;
+const sg24HourForecast = `https://api.data.gov.sg/v1/environment/24-hour-weather-forecast?date=${getYesterday()}`;
+const sg2HourForecast = `https://api.data.gov.sg/v1/environment/2-hour-weather-forecast?date=${getYesterday()}`;
 
 const bot = new TelegramBot(process.env.token, {polling: true});
 
@@ -56,8 +56,8 @@ function queryUsers(query) {
       console.log(`Made query: ${query}`);
       for (var i in result) {
         console.log(result[i].msgid);
-        sendCovidMessage(result[i].msgid, covidMessage, undefined);
         sendMessage(sg24HourForecast, result[i].msgid, sgRainMessage);
+        sendCovidMessage(result[i].msgid, covidMessage, undefined);
       }
     });
   });
@@ -175,17 +175,17 @@ function covidMessage(resp, msgId) {
 }
 
 function sgRainMessage(resp, msgId) {
-  const data = resp.data.items[0];
+  const data = resp.data.items[4];
   const forecast = data.general.forecast;
-  const humidity = data.general.relative_humidity.high;
-  const tempH = data.general.temperature.high;
-  const tempL = data.general.temperature.low;
-  if (humidity > 60) {
+  const morning = data.periods[1];
+  const afternoon = data.periods[2];
+
+  if (forecast.includes('Rain') || forecast.includes('Showers')) {
     bot.sendMessage(msgId, 'Bring your umbrella!!! \u2614');
   } else {
-    bot.sendMessage(msgId, 'Nah its not gonna rain today lol');
+    bot.sendMessage(msgId, 'It\'s not gonna rain today yay \u2600');
   }
-  bot.sendMessage(msgId, `Weather forecast: ${forecast}, Temperature: ${tempL}-${tempH}`);
+  bot.sendMessage(msgId, `Weather forecast for today (${getDate()})\nMorning: ${morning.regions.central}\nAfternoon: ${afternoon.regions.central}`);
 }
 
 function sgWeatherForecast(resp, msgId) {
@@ -207,6 +207,16 @@ function footballMessage(resp, msgId) {
 
 function getDate() {
   var today = new Date();
+  var dd = String(today.getDate()).padStart(2, '0');
+  var mm = String(today.getMonth() + 1).padStart(2, '0');
+  var yyyy = today.getFullYear();
+
+  return yyyy + '-' + mm + '-' + dd;
+}
+
+function getYesterday() {
+  var today = new Date();
+  today.setDate(today.getDate()-1);
   var dd = String(today.getDate()).padStart(2, '0');
   var mm = String(today.getMonth() + 1).padStart(2, '0');
   var yyyy = today.getFullYear();
