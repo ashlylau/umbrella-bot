@@ -56,15 +56,15 @@ function queryUsers(query) {
       console.log(`Made query: ${query}`);
       for (var i in result) {
         console.log(result[i].msgid);
-        sendMessage(sg24HourForecast, result[i].msgid, sgRainMessage);
         sendCovidMessage(result[i].msgid, covidMessage, undefined);
+        sendMessage(randomFactEndpoint, result[i].msgid, randomMessage);
       }
     });
   });
 }
 
 // send message everyday at 9am
-var j = schedule.scheduleJob('0 1 * * *', function(){
+var j = schedule.scheduleJob('0 13 * * *', function(){
   queryUsers('SELECT * from users;');
 });
 
@@ -198,7 +198,7 @@ function sgWeatherForecast(resp, msgId) {
 
 function randomMessage(resp, msgId) {
   const randomFact = resp.data.text;
-  bot.sendMessage(msgId, "Here's a random ass fact: \uD83D\uDC7E");
+  bot.sendMessage(msgId, "Here's a random fact: \uD83D\uDC7E");
   bot.sendMessage(msgId, randomFact);
 }
 
